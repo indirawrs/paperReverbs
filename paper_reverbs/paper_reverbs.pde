@@ -9,7 +9,7 @@ import gab.opencv.*;
 import processing.video.*;
 import java.awt.Rectangle;
 import processing.sound.*;
-
+SoundFile[] files;
 
 SoundFile grass, uke; 
 Reverb reverb;
@@ -40,8 +40,15 @@ void setup() {
   opencv = new OpenCV(this, video.width, video.height);
   contours = new ArrayList<Contour>();
   size(1712, 960);
-//fullScreen();
+  files = new SoundFile[4];
+  for (int i = 0; i < files.length; i++) {
+    files[i] = new SoundFile(this, (i+1) + ".aif");
+  }
+
+  //fullScreen();
   //AUDIO
+
+
   uke = new SoundFile(this, "uke.aif");
 
   grass = new SoundFile(this, "grass.aif");
@@ -65,16 +72,17 @@ void setup() {
 }
 
 void draw() {
-  textSize(random(30,40));
-  text("wasn't it funny", 1230,200);
-  text("when i had nothing to laugh about", 630, 200);
-  text("not really", 300,200);
+  //textSize(random(30, 40));
+  //text("wasn't it funny", 1230, 200);
+  //text("when i had nothing to laugh about", 630, 200);
+  //text("not really", 300, 200);
 
 
 
   delay.time(map(mouseY, 0, height, 0.001, 2.0));
   delay.feedback(map(mouseX, 0, width, 0.0, 0.8));
   println("mousex " + mouseX);
+  println("mousey " + mouseY);
 
   if (video.available()) {
     video.read();
@@ -114,9 +122,9 @@ void draw() {
   fill(255);
 
   if (colorToChange > -1) {
-    text("click to change color " + colorToChange, 10, 25);
+    //text("click to change color " + colorToChange, 10, 25);
   } else {
-    text("press key [1-4] to select color", 10, 25);
+    //text("press key [1-4] to select color", 10, 25);
   }
 
   displayContoursBoundingBoxes();
@@ -199,56 +207,78 @@ void vidOverlap() {
     blendMode(DARKEST);
     image(src, width/3, height/3, width/2, height/2);
     image(src, 600, 0, width/3, height/3);
-
+    image(src, 600, 800, width/3, height/3);
     popStyle();
   } else if (keyCode == DOWN) {
     pushStyle();
     blendMode(LIGHTEST);
-    println("fuck");
     image(src, width/3, height/3, width/2, height/2);
+    image(src, 600, 0, width/3, height/3);
+    image(src, width/3, 800, width/3, height/3);
+    image(src, 1200, 700, width/3, height/3); //botom RIGHT
     blendMode(EXCLUSION);
     image(src, 1200, 0, width/3, height/3);
+
     popStyle();
   } else if (keyCode == LEFT) {
     pushStyle();
     blendMode(DIFFERENCE);
+    image(src, 0, 300, width/3, height/3);
     image(src, width/3, height/3, width/2, height/2);
+    blendMode(DARKEST);
     image(src, 0, 0, width/3, height/3);
+    image(src, 600, 800, width/3, height/3);
+    blendMode(EXCLUSION);
+    image(src, 1200, 700, width/3, height/3); //botom right
+    blendMode(REPLACE);
+    image(src, 1200, 0, width/3, height/3); //top right
+
     // image(src, mouseX, mouseY, 200, 300);
     // println("left// blend mode exclusion");
     popStyle();
   } else if (keyCode == RIGHT) {
     pushStyle();
-    blendMode(ADD);
+    blendMode(MULTIPLY);
+    image(src, width/3, height/3, width/2, height/2);
+    image(src, 0, 0, width/3, height/3);
+    image(src, 1200, 0, width/3, height/3);
+    blendMode(LIGHTEST);
     image(src, 0, 0, width/3, height/3);
     image(src, 600, 0, width/3, height/3);
-    image(src, 1200, 0, width/3, height/3);
-    //image(src, mouseX, mouseY, 200, 300);
-    println("left// blend mode exclusion");
+    blendMode(DARKEST);
+    image(src, 1200, 700, width/3, height/3); //botom right
+
     popStyle();
+  } else {
+    blendMode(REPLACE);
+    image(src, 0, 0, width, height);
+    image(src, 1200, 700, width/3, height/3);
+    image(src, width/3, height/3, width/2, height/2);
+    image(src, 0, 800, width/3, height/3); //botom left
   }
 }
 void keyPressed() {
+  switch(key) {
+  case 'w':
+    files[0].loop(0.5, 2.0);
+    break;
+  case 'a':
+    files[1].play(0.3, 0.4);
+    break;
+  case 's':
+    files[2].play(0.5, 1.0);
+    break;
+  case 'd':
+    files[3].play(0.5, 1.0);
+    break;
+  case 'f':
+    files[4].play(0.5, 1.0);
 
-  //if (key == '1') {
-  //  blendMode(LIGHTEST);
-  //} else if (key == '2') {
-  //  blendMode(EXCLUSION);
-  //} else if (key == '3') {
-  //  colorToChange = 3;
-  //} else if (key == '4') {
-  //  colorToChange = 4;
-  //} else if (key == CODED) {
-  //  if (keyCode == UP) {
-  //    w = 255;
-  //    println(" w = 2555=");
-  //  } else if (keyCode == DOWN) {
-  //    w = 0;
-  //  } else if (keyCode == LEFT) {
-  //    // w = 0;
-  //  } else if (keyCode == RIGHT) {
-  //  }
-  //}
+    break;
+  case 'g':
+    files[0].play(0.2, 1.0);
+    break;
+  }
 }
 
 //////////////////////
@@ -298,7 +328,7 @@ void colorHSVTrack() {
     blendMode(EXCLUSION);
     noStroke(); 
     fill(205, 200, 0);
-    ellipse(r.x + r.width/2, r.y + r.height/2, 10, 10);
+    ellipse(r.x + r.width/2, r.y + r.height/2, 1, 1);
     popStyle();
 
     // MAP AUDIO BASED ON TRACKED COLOR POSITION
